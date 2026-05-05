@@ -1,0 +1,116 @@
+{
+  "folders": [
+    {
+      "name": "phil9 — App",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "tailwindCSS.experimental.classRegex": [
+      ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "files.associations": {
+      "*.css": "css"
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js",
+      "*.tsx": "${capture}.css",
+      "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc, .nvmrc"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      // Core
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+
+      // React / TypeScript
+      "dsznajder.es7-react-js-snippets",
+      "ms-vscode.vscode-typescript-next",
+
+      // Git & project management
+      "eamodio.gitlens",
+      "waymirec.clickup-vscode",
+
+      // Audio / media awareness
+      "ms-vscode.live-server",
+
+      // AI
+      "anthropics.claude-code",
+
+      // Utilities
+      "streetsidesoftware.code-spell-checker",
+      "christian-kohler.path-intellisense",
+      "formulahendry.auto-rename-tag"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "dev: start",
+        "type": "shell",
+        "command": "npm run dev",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "dev: build",
+        "type": "shell",
+        "command": "npm run build",
+        "group": "build",
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "dev: test",
+        "type": "shell",
+        "command": "npm test",
+        "group": "test",
+        "problemMatcher": []
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch phil9 (Chrome)",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:5173",
+        "webRoot": "${workspaceFolder}/src"
+      }
+    ]
+  },
+  "_phil9": {
+    "clickup": {
+      "workspace": "14286037",
+      "space": "90144723323 (Personal)",
+      "folders": {
+        "product":  "90149126800",
+        "engineering": "90149126803",
+        "design":   "90149126808",
+        "business": "90149126812"
+      },
+      "sprintBacklogListId": "901416112513"
+    },
+    "northStar": "A way to sit down at a console and listen to music with no distractions.",
+    "dependencies": {
+      "library": "Navidrome (Subsonic API)",
+      "radio":   "AzuraCast"
+    }
+  }
+}

@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISCOVERY I — AUDIO RECEPTION SYSTEM</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Michroma&family=Nova+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   DISCOVERY ONE — AUDIO RECEPTION SYSTEM
+   UNIT: HAL 9000 / AUDIO SUBSYSTEM 4
+   MISSION ELAPSED: CONTINUOUS
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --void:      #000000;
+  --panel:     #080808;
+  --panel2:    #0e0e0e;
+  --border:    #2a2a2a;
+  --border2:   #1a1a1a;
+  --white:     #e8e8e8;
+  --white-dim: #888888;
+  --white-faint:#333333;
+  --hal-red:   #cc1111;
+  --hal-glow:  #ff2222;
+  --hal-outer: #660000;
+  --amber:     #d4820a;
+  --amber-dim: #7a4a05;
+  --green:     #22aa44;
+  --green-dim: #0a3318;
+  --grid:      rgba(255,255,255,0.03);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { background: var(--void); font-size: 20px; }
+
+body {
+  background: var(--void);
+  color: var(--white);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+  /* fine grid overlay — like a CRT mask */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Scanline flicker */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.07) 3px,
+    rgba(0,0,0,0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── MASTHEAD ─────────────────────────────────── */
+.masthead {
+  border-bottom: 1px solid var(--border);
+  padding: 1.4rem 2rem 1.2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  position: relative;
+}
+
+.masthead-left {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  color: var(--white-dim);
+  line-height: 1.9;
+  text-transform: uppercase;
+}
+
+.masthead-center {
+  text-align: center;
+}
+
+.masthead-title {
+  font-family: 'Michroma', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.55em;
+  color: var(--white);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.masthead-sub {
+  font-size: 0.55rem;
+  letter-spacing: 0.5em;
+  color: var(--white-dim);
+  text-transform: uppercase;
+}
+
+.masthead-right {
+  text-align: right;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--white-dim);
+  line-height: 1.9;
+}
+
+.status-ok {
+  color: var(--green);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+}
+
+/* ── MISSION CLOCK ────────────────────────────── */
+.mission-clock {
+  font-family: 'Nova Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--amber);
+  padding: 0.5rem 2rem;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+}
+
+.clock-group { display: flex; gap: 3rem; }
+
+.clock-item span:first-child {
+  color: var(--white-faint);
+  margin-right: 0.8rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.4em;
+}
+
+/* ── MAIN LAYOUT ──────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+  min-height: calc(100vh - 100px);
+}
+
+/* ── LEFT PANEL — STATIONS ────────────────────── */
+.panel-left {
+  border-right: 1px solid var(--border);
+  padding: 0;
+}
+
+/* Section headers */
+.sec-header {
+  border-bottom: 1px solid var(--border2);
+  border-top: 1px solid var(--border2);
+  padding: 0.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--panel);
+  margin-top: 1px;
+}
+
+.sec-label {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.55em;
+  color: var(--white-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sec-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.sec-count {
+  font-size: 0.5rem;
+  letter-spacing: 0.3em;
+  color: var(--white-faint);
+}
+
+/* Station list */
+.station-list {
+  list-style: none;
+}
+
+.station-item {
+  border-bottom: 1px solid var(--border2);
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  align-items: stretch;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.station-item:hover { background: var(--panel2); }
+.station-item.active { background: #0d0d0d; }
+
+/* Row number */
+.row-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  color: var(--white-faint);
+  letter-spacing: 0.1em;
+  border-right: 1px solid var(--border2);
+  padding: 0.9rem 0;
+}
+
+.station-item.active .row-num {
+  color: var(--hal-red);
+  background: rgba(204,17,17,0.05);
+}
+
+.station-body {
+  padding: 0.75rem 1.2rem;
+}
+
+.station-call {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  color: var(--white);
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.station-item.active .station-call { color: var(--white); }
+
+/* Tiny transmission dot */
+.tx-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--hal-red);
+  box-shadow: 0 0 6px var(--hal-red);
+  flex-shrink: 0;
+  animation: txpulse 1s ease infinite;
+  display: none;
+}
+.station-item.active .tx-dot { display: inline-block; }
+@keyframes txpulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.station-name {
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--white-dim);
+  line-height: 1.4;
+}
+
+.station-tags {
+  font-size: 0.45rem;
+  letter-spacing: 0.25em;
+  color: var(--white-faint);
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+}
+
+.station-right {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.4rem;
+  border-left: 1px solid var(--border2);
+  min-width: 80px;
+}
+
+.station-freq {
+  font-family: 'Nova Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+}
+
+.station-loc {
+  font-size: 0.45rem;
+  letter-spacing: 0.15em;
+  color: var(--white-faint);
+  text-align: right;
+}
+
+/* ── RIGHT PANEL — CONTROLS ───────────────────── */
+.panel-right {
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+}
+
+/* HAL EYE + NOW PLAYING */
+.hal-section {
+  padding: 2rem 1.5rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* The eye */
+.hal-eye-wrap {
+  position: relative;
+  width: 110px; height: 110px;
+  cursor: pointer;
+}
+
+.hal-eye {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 38%,
+    #ff5533 0%,
+    #cc1111 25%,
+    #880000 55%,
+    #330000 80%,
+    #110000 100%
+  );
+  border: 2px solid #3a0000;
+  box-shadow:
+    0 0 0 6px #1a0000,
+    0 0 0 7px #2a0000,
+    0 0 30px rgba(200,0,0,0.4),
+    0 0 60px rgba(150,0,0,0.2),
+    inset 0 2px 8px rgba(255,100,50,0.3);
+  position: relative;
+  transition: box-shadow 0.3s;
+}
+
+.hal-eye::before {
+  content: '';
+  position: absolute;
+  top: 18%; left: 22%;
+  width: 28%; height: 22%;
+  background: rgba(255,200,180,0.25);
+  border-radius: 50%;
+  transform: rotate(-30deg);
+  filter: blur(3px);
+}
+
+/* Outer ring — rotates */
+.hal-ring {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1px solid #2a0000;
+  border-top-color: #550000;
+  border-left-color: #440000;
+}
+
+/* Tick marks around eye */
+.hal-ticks {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  animation: halring 30s linear infinite;
+}
+
+@keyframes halring { to { transform: rotate(360deg); } }
+
+.hal-ticks::before, .hal-ticks::after {
+  content: '';
+  position: absolute;
+  background: #3a0000;
+}
+
+/* Playing state */
+.hal-eye-wrap.playing .hal-eye {
+  box-shadow:
+    0 0 0 6px #2a0000,
+    0 0 0 7px #3a0000,
+    0 0 50px rgba(255,30,10,0.6),
+    0 0 100px rgba(200,0,0,0.3),
+    inset 0 2px 8px rgba(255,120,80,0.4);
+  animation: halpulse 3s ease infinite;
+}
+
+@keyframes halpulse {
+  0%,100% { box-shadow: 0 0 0 6px #2a0000, 0 0 0 7px #3a0000, 0 0 50px rgba(255,30,10,0.6), 0 0 100px rgba(200,0,0,0.3); }
+  50%     { box-shadow: 0 0 0 6px #2a0000, 0 0 0 7px #3a0000, 0 0 70px rgba(255,30,10,0.8), 0 0 120px rgba(200,0,0,0.4); }
+}
+
+.hal-label {
+  position: absolute;
+  bottom: -22px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.45rem;
+  letter-spacing: 0.5em;
+  color: var(--white-faint);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* NOW RECEIVING display */
+.now-recv {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--void);
+  padding: 0.9rem 1rem;
+  position: relative;
+}
+
+.recv-label {
+  font-size: 0.45rem;
+  letter-spacing: 0.55em;
+  color: var(--white-faint);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.recv-station {
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: var(--white);
+  margin-bottom: 0.25rem;
+  min-height: 1.2rem;
+}
+
+.recv-desc {
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  color: var(--white-dim);
+  min-height: 0.9rem;
+}
+
+/* Blinking cursor on active */
+.recv-cursor {
+  display: inline-block;
+  width: 6px; height: 0.7em;
+  background: var(--white);
+  margin-left: 3px;
+  vertical-align: middle;
+  animation: blink 1.1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── SIGNAL METERS ────────────────────────────── */
+.meters-section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.meter-row {
+  display: grid;
+  grid-template-columns: 4rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.meter-label {
+  font-size: 0.45rem;
+  letter-spacing: 0.35em;
+  color: var(--white-faint);
+  text-transform: uppercase;
+}
+
+.meter-track {
+  height: 4px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  background: var(--white-dim);
+  transition: width 0.2s ease;
+  position: relative;
+}
+
+.meter-fill.amber { background: var(--amber); }
+.meter-fill.green { background: var(--green); }
+.meter-fill.red   { background: var(--hal-red); }
+
+.meter-val {
+  font-family: 'Nova Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--white-dim);
+  text-align: right;
+}
+
+/* VU Meter */
+.vu-section {
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.vu-label {
+  font-size: 0.45rem;
+  letter-spacing: 0.4em;
+  color: var(--white-faint);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.vu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.vu-channel {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 28px;
+}
+
+.vu-bar {
+  flex: 1;
+  background: var(--border);
+  border-radius: 0;
+  transition: height 0.08s ease;
+  height: 3px;
+}
+.vu-bar.l1 { background: var(--green); }
+.vu-bar.l2 { background: var(--green); }
+.vu-bar.l3 { background: var(--amber); }
+.vu-bar.l4 { background: var(--hal-red); }
+
+.vu-ch-label {
+  font-size: 0.4rem;
+  letter-spacing: 0.3em;
+  color: var(--white-faint);
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
+/* ── VOLUME / CONTROLS ────────────────────────── */
+.vol-section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.ctrl-label {
+  font-size: 0.45rem;
+  letter-spacing: 0.4em;
+  color: var(--white-faint);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+
+.vol-track {
+  position: relative;
+  height: 2px;
+  background: var(--border);
+  margin-bottom: 0.4rem;
+}
+
+.vol-fill {
+  height: 100%;
+  background: var(--white-dim);
+  pointer-events: none;
+}
+
+.vol-slider {
+  position: absolute;
+  inset: -8px 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+}
+
+.vol-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1px;
+}
+
+.vol-tick {
+  font-size: 0.35rem;
+  color: var(--white-faint);
+  letter-spacing: 0;
+}
+
+/* ── SEARCH SECTION ───────────────────────────── */
+.search-section {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-input {
+  width: 100%;
+  background: var(--void);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 0.5rem 0.7rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--white-faint); }
+.search-input::placeholder { color: var(--white-faint); letter-spacing: 0.15em; }
+
+/* ── FILTER MATRIX ────────────────────────────── */
+.filter-section {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin-top: 0.5rem;
+}
+
+.filter-btn {
+  background: var(--void);
+  border: 1px solid var(--border);
+  color: var(--white-faint);
+  padding: 0.4rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.45rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.filter-btn:hover { border-color: var(--white-faint); color: var(--white-dim); }
+.filter-btn.active {
+  background: var(--white);
+  border-color: var(--white);
+  color: var(--void);
+}
+
+/* ── STATUS CONSOLE ───────────────────────────── */
+.console-section {
+  padding: 0.9rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-output {
+  flex: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--white-faint);
+  line-height: 1.9;
+  overflow: hidden;
+}
+
+.console-line { display: flex; gap: 0.5rem; }
+.console-line.hi { color: var(--white-dim); }
+.console-line.ok { color: var(--green); }
+.console-line.warn { color: var(--amber); }
+.console-line.err { color: var(--hal-red); }
+
+.console-ts { flex-shrink: 0; }
+
+/* ── ERROR MSG ────────────────────────────────── */
+.error-strip {
+  padding: 0.5rem 1.5rem;
+  background: rgba(204,17,17,0.1);
+  border-top: 1px solid var(--hal-outer);
+  font-size: 0.5rem;
+  letter-spacing: 0.3em;
+  color: var(--hal-glow);
+  text-transform: uppercase;
+  display: none;
+}
+.error-strip.show { display: block; animation: errflash 0.4s ease; }
+@keyframes errflash { 0%,100%{opacity:1} 25%,75%{opacity:0} 50%{opacity:1} }
+
+/* ── BOTTOM BAR ───────────────────────────────── */
+.bottom-bar {
+  border-top: 1px solid var(--border);
+  padding: 0.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+  font-size: 0.45rem;
+  letter-spacing: 0.3em;
+  color: var(--white-faint);
+}
+
+.bottom-bar .hal-ident {
+  color: var(--hal-red);
+  font-family: 'Michroma', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.4em;
+}
+
+/* ── SCROLLBAR ────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* responsive */
+@media (max-width: 800px) {
+  .main { grid-template-columns: 1fr; }
+  .panel-right { border-top: 1px solid var(--border); }
+  .masthead { grid-template-columns: 1fr; gap: 0.5rem; }
+  .masthead-left, .masthead-right { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATION EDITOR
+   ═══════════════════════════════════════════════════════ */
+
+.edit-db-btn {
+  background: none;
+  border: 1px solid var(--white-faint);
+  color: var(--white-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: .15em;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-left: auto;
+}
+.edit-db-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.editor-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.editor-overlay.open { display: flex; }
+
+.editor-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Share Tech Mono', monospace;
+}
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+}
+.editor-title { font-size: 0.65rem; letter-spacing: .2em; color: var(--amber); }
+.editor-close {
+  background: none; border: 1px solid var(--border);
+  color: var(--white-dim); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: .1em; padding: 4px 10px; cursor: pointer;
+}
+.editor-close:hover { border-color: var(--hal-red); color: var(--hal-red); }
+
+.editor-body { display: flex; flex: 1; overflow: hidden; }
+
+.editor-list-wrap {
+  width: 260px; min-width: 260px;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.editor-section-label {
+  font-size: 0.45rem; letter-spacing: .25em;
+  color: var(--white-faint); padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--border2);
+}
+.editor-list { list-style: none; overflow-y: auto; flex: 1; }
+.editor-list::-webkit-scrollbar { width: 3px; }
+.editor-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+.editor-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 12px; border-bottom: 1px solid var(--border2);
+  cursor: pointer; transition: background .15s;
+}
+.editor-list-item:hover { background: var(--panel2); }
+.editor-list-item.selected { background: #0a1a0a; border-left: 2px solid var(--green); }
+.eli-call { font-size: 0.6rem; letter-spacing: .1em; color: var(--white); }
+.eli-loc  { font-size: 0.4rem; color: var(--white-faint); letter-spacing: .1em; }
+.eli-badge {
+  font-size: 0.35rem; color: var(--white-faint);
+  border: 1px solid var(--border); padding: 1px 4px; letter-spacing: .1em;
+}
+.eli-delete {
+  background: none; border: none; color: var(--border);
+  font-size: 0.7rem; cursor: pointer; padding: 0 4px;
+  line-height: 1; transition: color .15s;
+}
+.eli-delete:hover { color: var(--hal-red); }
+
+.editor-add-btn {
+  background: none; border: 1px dashed var(--border);
+  color: var(--white-dim); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem; letter-spacing: .15em; padding: 8px;
+  cursor: pointer; width: 100%; transition: all .2s;
+}
+.editor-add-btn:hover { border-color: var(--green); color: var(--green); }
+
+.editor-form-wrap {
+  flex: 1; overflow-y: auto; padding: 12px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.editor-form-wrap::-webkit-scrollbar { width: 3px; }
+.editor-form-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+
+.editor-field { display: flex; flex-direction: column; gap: 4px; }
+.editor-field label { font-size: 0.42rem; letter-spacing: .2em; color: var(--white-faint); }
+.editor-input {
+  background: var(--panel2); border: 1px solid var(--border);
+  color: var(--white); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; padding: 6px 8px; outline: none;
+  transition: border-color .15s; width: 100%;
+}
+.editor-input:focus { border-color: var(--amber); }
+.editor-textarea { height: 80px; resize: vertical; }
+select.editor-input { cursor: pointer; }
+
+.editor-actions { display: flex; gap: 8px; margin-top: 4px; }
+.editor-save-btn {
+  background: var(--green-dim); border: 1px solid var(--green);
+  color: var(--green); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: .15em; padding: 7px 16px;
+  cursor: pointer; transition: all .2s;
+}
+.editor-save-btn:hover { background: var(--green); color: var(--void); }
+.editor-cancel-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--white-dim); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: .15em; padding: 7px 16px; cursor: pointer;
+}
+.editor-cancel-btn:hover { border-color: var(--white-dim); }
+.editor-status { font-size: 0.5rem; letter-spacing: .15em; min-height: 1.2em; }
+.editor-status.ok  { color: var(--green); }
+.editor-status.err { color: var(--hal-red); }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-left">
+    SPACECRAFT: DISCOVERY ONE<br>
+    MISSION: JUPITER / BEYOND<br>
+    UNIT: HAL 9000 SERIES IV
+  </div>
+  <div class="masthead-center">
+    <div class="masthead-title">Audio Reception System</div>
+    <div class="masthead-sub">Subsystem 4 · Terrestrial Broadcast Intercept</div>
+  </div>
+  <div class="masthead-right">
+    ALL SYSTEMS NOMINAL<br>
+    <span class="status-ok">● OPERATIONAL</span><br>
+    CREW STATUS: ACTIVE
+  </div>
+</div>
+
+<!-- MISSION CLOCK -->
+<div class="mission-clock">
+  <div class="clock-group">
+    <div class="clock-item"><span>MET</span><span id="metClock">000:00:00:00</span></div>
+    <div class="clock-item"><span>UTC</span><span id="utcClock">00:00:00</span></div>
+    <div class="clock-item"><span>FREQ</span><span id="freqReadout">-- -- -- --</span></div>
+  </div>
+  <div class="clock-group">
+    <div class="clock-item"><span>SIGNAL</span><span id="sigReadout">NONE</span></div>
+    <div class="clock-item"><span>MODE</span><span id="modeReadout">STANDBY</span></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: STATION DIRECTORY -->
+  <div class="panel-left">
+    <!-- Search in left panel top -->
+    <div style="padding: 0.7rem 2rem; border-bottom: 1px solid var(--border2); display:flex; gap:1rem; align-items:center; background: var(--panel);">
+      <span style="font-size:0.45rem;letter-spacing:0.4em;color:var(--white-faint);white-space:nowrap;text-transform:uppercase;">Query</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="STATION IDENTIFIER / LOCATION / FORMAT" style="border:none;border-bottom:1px solid var(--border);background:transparent;padding:0.3rem 0;">
+    </div>
+    <!-- Filter row -->
+    <div style="padding:0.5rem 2rem;border-bottom:1px solid var(--border2);display:flex;gap:3px;background:var(--panel);">
+      <button class="filter-btn active" data-filter="all" style="flex:1">ALL</button>
+      <button class="filter-btn" data-filter="jazz" style="flex:1">JAZZ</button>
+      <button class="filter-btn" data-filter="classical" style="flex:1">CLAS</button>
+      <button class="filter-btn" data-filter="world" style="flex:1">WRLD</button>
+      <button class="filter-btn" data-filter="eclectic" style="flex:1">MISC</button>
+    </div>
+
+    <!-- US -->
+    <div class="sec-header">
+      <div class="sec-label">Terrestrial — United States</div>
+      <div class="sec-line"></div>
+      <div class="sec-count" id="usCount">08 SOURCES</div>
+    </div>
+    <ul class="station-list" id="usGrid"></ul>
+
+    <!-- Intl -->
+    <div class="sec-header">
+      <div class="sec-label">International Intercept</div>
+      <div class="sec-line"></div>
+      <div class="sec-count" id="intlCount">08 SOURCES</div>
+    </div>
+    <ul class="station-list" id="intlGrid"></ul>
+  </div>
+
+  <!-- RIGHT: CONTROL PANEL -->
+  <div class="panel-right">
+
+    <!-- HAL EYE -->
+    <div class="hal-section">
+      <div class="hal-eye-wrap" id="halWrap" title="ENGAGE / DISENGAGE">
+        <div class="hal-ring"></div>
+        <div class="hal-ticks"></div>
+        <div class="hal-eye" id="halEye"></div>
+        <div class="hal-label">HAL 9000 · AUDIO CTRL</div>
+      </div>
+
+      <div class="now-recv">
+        <div class="recv-label">Now Receiving</div>
+        <div class="recv-station" id="recvStation">NO SIGNAL<span class="recv-cursor"></span></div>
+        <div class="recv-desc" id="recvDesc">Awaiting station selection</div>
+      </div>
+    </div>
+
+    <!-- SIGNAL METERS -->
+    <div class="meters-section">
+      <div class="ctrl-label">Signal Telemetry</div>
+
+      <div class="meter-row">
+        <div class="meter-label">Signal</div>
+        <div class="meter-track"><div class="meter-fill green" id="mSig" style="width:0%"></div></div>
+        <div class="meter-val" id="mSigVal">0%</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">Buffer</div>
+        <div class="meter-track"><div class="meter-fill amber" id="mBuf" style="width:0%"></div></div>
+        <div class="meter-val" id="mBufVal">0%</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">Noise</div>
+        <div class="meter-track"><div class="meter-fill red" id="mNoise" style="width:5%"></div></div>
+        <div class="meter-val" id="mNoiseVal">5%</div>
+      </div>
+    </div>
+
+    <!-- VU METER -->
+    <div class="vu-section">
+      <div class="vu-label">Audio Level — Channel L/R</div>
+      <div class="vu-grid">
+        <div>
+          <div class="vu-channel" id="vuL"></div>
+          <div class="vu-ch-label">LEFT</div>
+        </div>
+        <div>
+          <div class="vu-channel" id="vuR"></div>
+          <div class="vu-ch-label">RIGHT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOLUME -->
+    <div class="vol-section">
+      <div class="ctrl-label">Audio Level Control</div>
+      <div class="vol-track">
+        <div class="vol-fill" id="volFill" style="width:80%"></div>
+        <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+      </div>
+      <div class="vol-ticks">
+        <span class="vol-tick">0</span><span class="vol-tick">25</span>
+        <span class="vol-tick">50</span><span class="vol-tick">75</span>
+        <span class="vol-tick">100</span>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-strip" id="errorStrip">
+      ⚠ TRANSMISSION FAULT — SOURCE UNAVAILABLE
+    </div>
+
+    <!-- CONSOLE LOG -->
+    <div class="console-section">
+      <div class="ctrl-label">System Log</div>
+      <div class="console-output" id="consoleOut"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <span>DISCOVERY ONE · AUDIO RECEPTION SUBSYSTEM 4 · UNIT HAL/AR-4</span>
+  <span class="hal-ident">HAL 9000</span>
+  <span>I'M SORRY, DAVE. THIS STATION IS NOMINAL.</span>
+  <button class="edit-db-btn" id="editDbBtn" title="Edit Station Database">⬡ EDIT DB</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STATION EDITOR MODAL
+     ═══════════════════════════════════════════ -->
+<div class="editor-overlay" id="editorOverlay">
+  <div class="editor-panel">
+    <div class="editor-header">
+      <span class="editor-title">⬡ STATION DATABASE — EDIT MODE</span>
+      <button class="editor-close" id="editorClose">✕ CLOSE</button>
+    </div>
+
+    <!-- Station List -->
+    <div class="editor-body">
+      <div class="editor-list-wrap">
+        <div class="editor-section-label">INDEXED STATIONS</div>
+        <ul class="editor-list" id="editorList"></ul>
+        <button class="editor-add-btn" id="editorAddBtn">+ ADD NEW STATION</button>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="editor-form-wrap" id="editorFormWrap">
+        <div class="editor-section-label" id="editorFormTitle">NEW STATION</div>
+        <div class="editor-field">
+          <label>REGION</label>
+          <select class="editor-input" id="fRegion">
+            <option value="us">US</option>
+            <option value="intl">INTL</option>
+          </select>
+        </div>
+        <div class="editor-field">
+          <label>CALL SIGN</label>
+          <input class="editor-input" id="fCall" placeholder="e.g. WXYZ" maxlength="12">
+        </div>
+        <div class="editor-field">
+          <label>FULL NAME</label>
+          <input class="editor-input" id="fName" placeholder="Station full name">
+        </div>
+        <div class="editor-field">
+          <label>LOCATION</label>
+          <input class="editor-input" id="fLoc" placeholder="e.g. CHICAGO, IL">
+        </div>
+        <div class="editor-field">
+          <label>FREQUENCY</label>
+          <input class="editor-input" id="fFreq" placeholder="e.g. 91.5 FM">
+        </div>
+        <div class="editor-field">
+          <label>DESCRIPTION</label>
+          <input class="editor-input" id="fDesc" placeholder="Short tagline">
+        </div>
+        <div class="editor-field">
+          <label>TAGS <span style="color:var(--white-faint)">(comma-separated: jazz,blues)</span></label>
+          <input class="editor-input" id="fTags" placeholder="jazz,blues,eclectic">
+        </div>
+        <div class="editor-field">
+          <label>STREAM URL(S) <span style="color:var(--white-faint)">(one per line, tried in order)</span></label>
+          <textarea class="editor-input editor-textarea" id="fStreams" placeholder="https://stream.example.com/live.mp3&#10;https://stream.example.com/fallback.mp3"></textarea>
+        </div>
+        <div class="editor-actions">
+          <button class="editor-save-btn" id="editorSaveBtn">SAVE STATION</button>
+          <button class="editor-cancel-btn" id="editorCancelBtn">CANCEL</button>
+        </div>
+        <div class="editor-status" id="editorStatus"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATION DATABASE — VERIFIED STREAM URLs
+//  Last audited: March 2026
+//  Each station has primary + fallback URLs.
+//  HLS streams (.m3u8) use native browser HLS
+//  where supported (Safari, Edge) or fall back
+//  to the mp3/aac alternate.
+// ═══════════════════════════════════════════
+const STATIONS = {
+  us: [
+    {
+      call:'WWOZ', name:'New Orleans Jazz & Heritage Radio',
+      loc:'NEW ORLEANS, LA', tags:['jazz','blues','world'], freq:'90.7 FM',
+      desc:'The Voice of New Orleans',
+      streams:[
+        'https://wwoz-sc.streamguys1.com/wwoz-hi.mp3',
+      ]
+    },
+    {
+      call:'WMSE', name:'Milwaukee School of Engineering Radio',
+      loc:'MILWAUKEE, WI', tags:['eclectic','folk','jazz'], freq:'91.7 FM',
+      desc:'Independent Eclectic Broadcast',
+      streams:[
+        'https://wmse.streamguys1.com/wmselivemp3',
+        'https://wmse.streamguys1.com/wmse.mp3',
+        'https://wmse.streamguys1.com/wmse',
+      ]
+    },
+    {
+      call:'WDCB', name:'College of DuPage Public Radio',
+      loc:'GLEN ELLYN, IL', tags:['jazz','blues'], freq:'90.9 FM',
+      desc:'Chicago Jazz & Blues',
+      streams:[
+        'https://wdcb-ice.streamguys1.com/wdcb128',
+        'https://wdcb-ice.streamguys1.com/mobile-AAC',
+      ]
+    },
+    {
+      call:'KEXP', name:'KEXP Seattle',
+      loc:'SEATTLE, WA', tags:['eclectic'], freq:'90.3 FM',
+      desc:'Where the Music Matters',
+      streams:[
+        'https://kexp.streamguys1.com/kexp160.aac',
+        'https://kexp.streamguys1.com/kexp64.aac',
+      ]
+    },
+    {
+      call:'WFMU', name:'WFMU Free Form Radio',
+      loc:'JERSEY CITY, NJ', tags:['eclectic'], freq:'91.1 FM',
+      desc:"America's Most Renowned Freeform",
+      streams:[
+        'https://stream0.wfmu.org/freeform-128k',
+        'https://stream1.wfmu.org/freeform-128k',
+        'https://stream2.wfmu.org/freeform-128k',
+        'https://stream3.wfmu.org/freeform-128k',
+      ]
+    },
+    {
+      call:'KCSM', name:'Jazz 91.1',
+      loc:'SAN MATEO, CA', tags:['jazz'], freq:'91.1 FM',
+      desc:'Bay Area Jazz Station',
+      streams:[
+        'https://kcsm.streamguys1.com/kcsm128.mp3',
+        'https://kcsm.streamguys1.com/kcsm128',
+      ]
+    },
+    {
+      call:'KUTX', name:'KUTX Austin',
+      loc:'AUSTIN, TX', tags:['eclectic','folk'], freq:'98.9 FM',
+      desc:"Austin's Music Station",
+      streams:[
+        'https://kut.streamguys1.com/kutx-free.mp3',
+        'https://kut.streamguys1.com/kutx-free',
+      ]
+    },
+    {
+      call:'WBGO', name:'Jazz 88.3',
+      loc:'NEWARK, NJ', tags:['jazz'], freq:'88.3 FM',
+      desc:'Newark Public Radio Jazz',
+      streams:[
+        'https://wbgo.streamguys1.com/wbgo128.mp3',
+        'https://wbgo.streamguys1.com/wbgo128',
+      ]
+    },
+  ],
+  intl: [
+    {
+      call:'BBC R3', name:'BBC Radio 3',
+      loc:'LONDON, UK', tags:['classical','world'], freq:'90.2 FM',
+      desc:'Classical Jazz & Arts — BBC',
+      streams:[
+        'http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8',
+        'http://stream.live.vc.bbcmedia.co.uk/bbc_radio_three',
+      ]
+    },
+    {
+      call:'FIP', name:'FIP Radio France',
+      loc:'PARIS, FRANCE', tags:['jazz','world','eclectic'], freq:'105.1 FM',
+      desc:'Radio France — Éclectique',
+      streams:[
+        'https://icecast.radiofrance.fr/fip-hifi.aac',
+        'https://direct.fipradio.fr/live/fip-hifi.aac',
+        'https://direct.fipradio.fr/live/fip-midfi.mp3',
+      ]
+    },
+    {
+      call:'FIP JAZZ', name:'FIP Radio — Jazz Channel',
+      loc:'PARIS, FRANCE', tags:['jazz','world'], freq:'ONLINE',
+      desc:'FIP Jazz — Radio France',
+      streams:[
+        'https://icecast.radiofrance.fr/fipjazz-hifi.aac',
+        'https://direct.fipradio.fr/live/fipjazz-midfi.mp3',
+      ]
+    },
+    {
+      call:'FIP MONDE', name:'FIP Radio — World Music',
+      loc:'PARIS, FRANCE', tags:['world','eclectic'], freq:'ONLINE',
+      desc:'FIP World — Global Sounds',
+      streams:[
+        'https://icecast.radiofrance.fr/fipworld-hifi.aac',
+        'https://direct.fipradio.fr/live/fipworld-midfi.mp3',
+      ]
+    },
+    {
+      call:'ARTE R', name:'ARTE Radio',
+      loc:'STRASBOURG, FRANCE', tags:['eclectic','world'], freq:'ONLINE',
+      desc:'Franco-German Arts Broadcasting',
+      streams:[
+        'https://artestandard.ice.infomaniak.ch/arte-standard-128.mp3',
+      ]
+    },
+    {
+      call:'RTÉ lyric', name:'RTÉ lyric fm',
+      loc:'LIMERICK, IRELAND', tags:['classical'], freq:'96.0 FM',
+      desc:"Ireland's Classical Station",
+      streams:[
+        'https://rtelyricfm.akamaized.net/audio/lyricfm/rtelyricfm_hi.m3u8',
+        'https://rtelyricfm.akamaized.net/audio/lyricfm/rtelyricfm_lo.m3u8',
+      ]
+    },
+    {
+      call:'SOMA/SA', name:'SomaFM Secret Agent',
+      loc:'SAN FRANCISCO, CA', tags:['world','eclectic'], freq:'ONLINE',
+      desc:'Retro Spy Jazz & Bossa Nova',
+      streams:[
+        'https://ice6.somafm.com/secretagent-128-mp3',
+        'https://ice4.somafm.com/secretagent-128-mp3',
+        'https://ice2.somafm.com/secretagent-128-mp3',
+      ]
+    },
+    {
+      call:'SOMA/GV', name:'SomaFM Groove Salad',
+      loc:'SAN FRANCISCO, CA', tags:['eclectic'], freq:'ONLINE',
+      desc:'A Nicely Chilled Plate of Grooves',
+      streams:[
+        'https://ice6.somafm.com/groovesalad-128-mp3',
+        'https://ice4.somafm.com/groovesalad-128-mp3',
+        'https://ice2.somafm.com/groovesalad-128-mp3',
+      ]
+    },
+  ]
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let audio = null, currentStation = null, playing = false;
+let streamIndex = 0;  // which fallback URL we're trying
+
+// ═══════════════════════════════════════════
+//  VU METERS
+// ═══════════════════════════════════════════
+const vuL = document.getElementById('vuL');
+const vuR = document.getElementById('vuR');
+const vuBarsL = [], vuBarsR = [];
+
+function levelClass(i, total, h) {
+  const pct = h / 28;
+  if (pct > 0.85) return 'l4';
+  if (pct > 0.6)  return 'l3';
+  return (i / total) > 0.5 ? 'l2' : 'l1';
+}
+
+for (let i = 0; i < 20; i++) {
+  [vuL, vuR].forEach((container, ci) => {
+    const b = document.createElement('div');
+    b.className = 'vu-bar';
+    container.appendChild(b);
+    (ci === 0 ? vuBarsL : vuBarsR).push(b);
+  });
+}
+
+let vuTimer = null;
+function animateVU(on) {
+  clearInterval(vuTimer);
+  if (!on) {
+    [...vuBarsL, ...vuBarsR].forEach(b => { b.style.height = '3px'; b.className = 'vu-bar'; });
+    return;
+  }
+  vuTimer = setInterval(() => {
+    [vuBarsL, vuBarsR].forEach(bars => {
+      bars.forEach((b, i) => {
+        const h = Math.random() * 22 + 3;
+        b.style.height = h + 'px';
+        b.className = 'vu-bar ' + levelClass(i, bars.length, h);
+      });
+    });
+  }, 85);
+}
+
+// ═══════════════════════════════════════════
+//  SIGNAL METERS
+// ═══════════════════════════════════════════
+let meterTimer = null;
+function animateMeters(on) {
+  clearInterval(meterTimer);
+  document.getElementById('mSig').style.width = '0%';
+  document.getElementById('mBuf').style.width = '0%';
+  document.getElementById('mNoise').style.width = '5%';
+  document.getElementById('mSigVal').textContent = '0%';
+  document.getElementById('mBufVal').textContent = '0%';
+  document.getElementById('mNoiseVal').textContent = '5%';
+  if (!on) return;
+  meterTimer = setInterval(() => {
+    const sig   = 75 + Math.random() * 20;
+    const buf   = 85 + Math.random() * 12;
+    const noise = 2  + Math.random() * 8;
+    document.getElementById('mSig').style.width   = sig + '%';
+    document.getElementById('mBuf').style.width   = buf + '%';
+    document.getElementById('mNoise').style.width = noise + '%';
+    document.getElementById('mSigVal').textContent   = Math.round(sig) + '%';
+    document.getElementById('mBufVal').textContent   = Math.round(buf) + '%';
+    document.getElementById('mNoiseVal').textContent = Math.round(noise) + '%';
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════
+//  CONSOLE LOG
+// ═══════════════════════════════════════════
+const consoleOut = document.getElementById('consoleOut');
+const logLines = [];
+function addLog(msg, cls = '') {
+  const ts = new Date().toISOString().substr(11, 8);
+  logLines.push({ ts, msg, cls });
+  if (logLines.length > 14) logLines.shift();
+  consoleOut.innerHTML = logLines.map(l =>
+    `<div class="console-line ${l.cls}"><span class="console-ts">${l.ts}</span><span>${l.msg}</span></div>`
+  ).join('');
+  consoleOut.scrollTop = consoleOut.scrollHeight;
+}
+
+// Init log
+addLog('AUDIO RECEPTION SUBSYSTEM ONLINE', 'ok');
+addLog('HAL 9000 INTERFACE ACTIVE', 'ok');
+addLog('CORS-FREE PLAYBACK ENGINE ACTIVE', 'ok');
+addLog((STATIONS.us.length + STATIONS.intl.length) + ' BROADCAST SOURCES INDEXED');
+addLog('AWAITING OPERATOR SELECTION');
+
+// ═══════════════════════════════════════════
+//  PLAYBACK ENGINE — MULTI-SOURCE FALLBACK
+//  Tries each URL in st.streams[] in order.
+//  On error, automatically advances to next.
+//  Supports both direct streams and HLS (.m3u8)
+//  via native browser HLS where available.
+// ═══════════════════════════════════════════
+const halWrap    = document.getElementById('halWrap');
+const recvStat   = document.getElementById('recvStation');
+const recvDesc   = document.getElementById('recvDesc');
+const freqOut    = document.getElementById('freqReadout');
+const sigOut     = document.getElementById('sigReadout');
+const modeOut    = document.getElementById('modeReadout');
+const errorStrip = document.getElementById('errorStrip');
+
+let currentVolume = 0.8;
+
+halWrap.addEventListener('click', () => {
+  if (playing) stopAll();
+  else if (currentStation) {
+    const card = document.querySelector(`[data-call="${currentStation.call}"]`);
+    if (card) tryStream(currentStation, card, 0);
+  }
+});
+
+document.getElementById('volSlider').addEventListener('input', function() {
+  currentVolume = this.value / 100;
+  document.getElementById('volFill').style.width = this.value + '%';
+  if (audio) audio.volume = currentVolume;
+});
+
+function allOff() {
+  document.querySelectorAll('.station-item').forEach(el => el.classList.remove('active'));
+}
+
+function destroyAudio() {
+  if (audio) {
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+    audio = null;
+  }
+  playing = false;
+}
+
+// Core: try stream at index idx, fall back on failure
+function tryStream(st, card, idx) {
+  if (idx >= st.streams.length) {
+    // All sources exhausted
+    onAllFailed(st);
+    return;
+  }
+
+  const url = st.streams[idx];
+  addLog('TRYING SOURCE ' + (idx + 1) + '/' + st.streams.length + ': ' + url.split('/').pop().substring(0,30), idx > 0 ? 'warn' : '');
+
+  destroyAudio();
+  audio = new Audio();
+  // NOTE: Do NOT set crossOrigin here. Setting crossOrigin='anonymous'
+  // triggers CORS preflight and blocks any stream that doesn't send
+  // Access-Control-Allow-Origin:* — which most radio stations don't.
+  // Plain <audio> can play cross-origin streams just fine without it.
+  audio.volume = currentVolume;
+  audio.preload = 'none';
+
+  // For HLS streams on browsers without native HLS support
+  // (Chrome/Firefox don't support m3u8 natively), skip to next
+  if (url.includes('.m3u8') && !audio.canPlayType('application/x-mpegURL') && !audio.canPlayType('application/vnd.apple.mpegurl')) {
+    addLog('HLS NOT SUPPORTED — SKIPPING: ' + url.split('/').pop().substring(0,25), 'warn');
+    tryStream(st, card, idx + 1);
+    return;
+  }
+
+  audio.src = url;
+
+  // Timeout: if nothing happens in 12s, try next
+  let connectTimer = setTimeout(() => {
+    if (!playing) {
+      addLog('TIMEOUT ON SOURCE ' + (idx + 1) + ' — TRYING NEXT', 'warn');
+      tryStream(st, card, idx + 1);
+    }
+  }, 12000);
+
+  audio.addEventListener('playing', () => {
+    clearTimeout(connectTimer);
+    playing = true;
+    streamIndex = idx;
+    halWrap.classList.add('playing');
+    sigOut.textContent  = 'LOCKED';
+    modeOut.textContent = 'RECEIVING';
+    errorStrip.classList.remove('show');
+    addLog('SIGNAL LOCKED: ' + st.call + ' [SOURCE ' + (idx + 1) + ']', 'ok');
+    addLog('RX: ' + st.loc + ' / ' + st.freq, 'ok');
+    animateVU(true);
+    animateMeters(true);
+  }, { once: true });
+
+  audio.addEventListener('error', () => {
+    clearTimeout(connectTimer);
+    if (!playing) {
+      const code = audio.error ? audio.error.code : '?';
+      addLog('SOURCE ' + (idx + 1) + ' FAULT (ERR ' + code + ') — ADVANCING', 'warn');
+      tryStream(st, card, idx + 1);
+    }
+  }, { once: true });
+
+  audio.play().catch(err => {
+    clearTimeout(connectTimer);
+    if (!playing) {
+      addLog('PLAY REJECTED: ' + err.name + ' — TRYING NEXT', 'warn');
+      tryStream(st, card, idx + 1);
+    }
+  });
+}
+
+function onAllFailed(st) {
+  destroyAudio();
+  halWrap.classList.remove('playing');
+  sigOut.textContent  = 'NONE';
+  modeOut.textContent = 'FAULT';
+  recvStat.innerHTML  = 'SIGNAL LOST<span class="recv-cursor"></span>';
+  recvDesc.textContent = 'All sources exhausted — station unavailable';
+  freqOut.textContent  = '-- -- -- --';
+  errorStrip.classList.add('show');
+  allOff(); animateVU(false); animateMeters(false);
+  addLog('ALL SOURCES EXHAUSTED: ' + st.call, 'err');
+  addLog('STATION MAY BE OFFLINE OR GEO-RESTRICTED', 'warn');
+}
+
+function playStation(st, card) {
+  errorStrip.classList.remove('show');
+
+  // Toggle off if same station
+  if (currentStation?.call === st.call && playing) { stopAll(); return; }
+
+  destroyAudio();
+  allOff();
+  currentStation = st;
+  card.classList.add('active');
+
+  recvStat.innerHTML = st.call + '<span class="recv-cursor"></span>';
+  recvDesc.textContent = st.desc.toUpperCase();
+  freqOut.textContent = st.freq;
+  sigOut.textContent  = 'ACQUIRING';
+  modeOut.textContent = 'CONNECTING';
+  halWrap.classList.remove('playing');
+  animateVU(false); animateMeters(false);
+  addLog('ACQUIRING: ' + st.call + ' — ' + st.name.substring(0,25).toUpperCase(), 'hi');
+  addLog(st.streams.length + ' SOURCE(S) AVAILABLE — INITIATING LOCK');
+
+  tryStream(st, card, 0);
+}
+
+function stopAll() {
+  destroyAudio();
+  halWrap.classList.remove('playing');
+  sigOut.textContent  = 'NONE';
+  modeOut.textContent = 'STANDBY';
+  recvStat.innerHTML  = 'NO SIGNAL<span class="recv-cursor"></span>';
+  recvDesc.textContent = 'Awaiting station selection';
+  freqOut.textContent  = '-- -- -- --';
+  errorStrip.classList.remove('show');
+  allOff(); animateVU(false); animateMeters(false);
+  addLog('TRANSMISSION TERMINATED BY OPERATOR', 'warn');
+}
+
+// ═══════════════════════════════════════════
+//  RENDER STATIONS
+// ═══════════════════════════════════════════
+let rowNum = 1;
+function buildItem(st) {
+  const li = document.createElement('li');
+  li.className = 'station-item';
+  li.dataset.call = st.call;
+  li.dataset.tags = st.tags.join(',');
+  li.dataset.text = (st.call + st.name + st.loc + st.tags.join(' ')).toLowerCase();
+  // Show source count as reliability indicator
+  const srcLabel = st.streams.length > 1 ? st.streams.length + ' SRC' : '1 SRC';
+  li.innerHTML = `
+    <div class="row-num">${String(rowNum++).padStart(2,'0')}</div>
+    <div class="station-body">
+      <div class="station-call">
+        <span class="tx-dot"></span>${st.call}
+      </div>
+      <div class="station-name">${st.name.toUpperCase()}</div>
+      <div class="station-tags">${st.tags.join(' · ').toUpperCase()}</div>
+    </div>
+    <div class="station-right">
+      <div class="station-freq">${st.freq}</div>
+      <div class="station-loc">${st.loc}</div>
+      <div class="station-loc" style="color:var(--white-faint);font-size:0.4rem;letter-spacing:.2em;">${srcLabel}</div>
+    </div>
+  `;
+  li.addEventListener('click', () => playStation(st, li));
+  return li;
+}
+
+// ═══════════════════════════════════════════
+//  SEARCH & FILTER
+// ═══════════════════════════════════════════
+let activeFilter = 'all';
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    applyFilters();
+  });
+});
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.station-item').forEach(el => {
+    const ok = (!q || el.dataset.text.includes(q)) &&
+               (activeFilter === 'all' || el.dataset.tags.includes(activeFilter));
+    el.style.display = ok ? '' : 'none';
+  });
+}
+
+// ═══════════════════════════════════════════
+//  CLOCKS
+// ═══════════════════════════════════════════
+const missionStart = Date.now() - 42 * 24 * 60 * 60 * 1000; // 42 days into mission
+
+function tick() {
+  const now = new Date();
+  // UTC
+  const hh = String(now.getUTCHours()).padStart(2,'0');
+  const mm = String(now.getUTCMinutes()).padStart(2,'0');
+  const ss = String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('utcClock').textContent = hh + ':' + mm + ':' + ss;
+
+  // MET
+  const elapsed = Math.floor((Date.now() - missionStart) / 1000);
+  const metD = String(Math.floor(elapsed / 86400)).padStart(3,'0');
+  const metH = String(Math.floor((elapsed % 86400) / 3600)).padStart(2,'0');
+  const metM = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
+  const metS = String(elapsed % 60).padStart(2,'0');
+  document.getElementById('metClock').textContent = metD + ':' + metH + ':' + metM + ':' + metS;
+}
+tick(); setInterval(tick, 1000);
+
+// ═══════════════════════════════════════════
+//  STATION EDITOR
+// ═══════════════════════════════════════════
+
+// Load any user-saved stations from localStorage and merge with defaults
+function loadUserStations() {
+  try {
+    const saved = localStorage.getItem('hal_stations');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.us)   STATIONS.us   = parsed.us;
+      if (parsed.intl) STATIONS.intl = parsed.intl;
+    }
+  } catch(e) {}
+}
+
+function saveUserStations() {
+  try {
+    localStorage.setItem('hal_stations', JSON.stringify({ us: STATIONS.us, intl: STATIONS.intl }));
+  } catch(e) {}
+}
+
+// Re-render the station list in the main UI
+function rebuildMainList() {
+  ['us','intl'].forEach(key => {
+    const grid = document.getElementById(key === 'us' ? 'usGrid' : 'intlGrid');
+    grid.innerHTML = '';
+  });
+  rowNum = 1;
+  ['us','intl'].forEach(key => {
+    const grid = document.getElementById(key === 'us' ? 'usGrid' : 'intlGrid');
+    STATIONS[key].forEach(st => grid.appendChild(buildItem(st)));
+    const countEl = document.getElementById(key === 'us' ? 'usCount' : 'intlCount');
+    if (countEl) countEl.textContent = String(STATIONS[key].length).padStart(2,'0') + ' SOURCES';
+  });
+}
+
+// Editor state
+let editingRegion = null;
+let editingIndex  = null;
+
+const overlay     = document.getElementById('editorOverlay');
+const editorList  = document.getElementById('editorList');
+const formWrap    = document.getElementById('editorFormWrap');
+const formTitle   = document.getElementById('editorFormTitle');
+const editorStatus= document.getElementById('editorStatus');
+
+const fRegion  = document.getElementById('fRegion');
+const fCall    = document.getElementById('fCall');
+const fName    = document.getElementById('fName');
+const fLoc     = document.getElementById('fLoc');
+const fFreq    = document.getElementById('fFreq');
+const fDesc    = document.getElementById('fDesc');
+const fTags    = document.getElementById('fTags');
+const fStreams  = document.getElementById('fStreams');
+
+document.getElementById('editDbBtn').addEventListener('click', () => {
+  overlay.classList.add('open');
+  renderEditorList();
+  clearForm();
+});
+document.getElementById('editorClose').addEventListener('click', () => {
+  overlay.classList.remove('open');
+});
+overlay.addEventListener('click', e => {
+  if (e.target === overlay) overlay.classList.remove('open');
+});
+
+document.getElementById('editorAddBtn').addEventListener('click', () => {
+  editingRegion = null;
+  editingIndex  = null;
+  clearForm();
+  formTitle.textContent = 'NEW STATION';
+  document.querySelectorAll('.editor-list-item').forEach(el => el.classList.remove('selected'));
+});
+
+document.getElementById('editorSaveBtn').addEventListener('click', saveStation);
+document.getElementById('editorCancelBtn').addEventListener('click', () => {
+  clearForm();
+  editingRegion = null;
+  editingIndex  = null;
+  document.querySelectorAll('.editor-list-item').forEach(el => el.classList.remove('selected'));
+});
+
+function clearForm() {
+  fRegion.value  = 'us';
+  fCall.value    = '';
+  fName.value    = '';
+  fLoc.value     = '';
+  fFreq.value    = '';
+  fDesc.value    = '';
+  fTags.value    = '';
+  fStreams.value  = '';
+  editorStatus.textContent = '';
+  editorStatus.className   = 'editor-status';
+  formTitle.textContent    = 'NEW STATION';
+}
+
+function renderEditorList() {
+  editorList.innerHTML = '';
+  ['us','intl'].forEach(region => {
+    STATIONS[region].forEach((st, idx) => {
+      const li = document.createElement('li');
+      li.className = 'editor-list-item';
+      li.innerHTML = `
+        <div>
+          <div class="eli-call">${st.call}</div>
+          <div class="eli-loc">${st.loc}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="eli-badge">${region.toUpperCase()}</span>
+          <button class="eli-delete" title="Remove station" data-region="${region}" data-idx="${idx}">✕</button>
+        </div>
+      `;
+      li.addEventListener('click', (e) => {
+        if (e.target.classList.contains('eli-delete')) return;
+        document.querySelectorAll('.editor-list-item').forEach(el => el.classList.remove('selected'));
+        li.classList.add('selected');
+        loadStationIntoForm(region, idx);
+      });
+      li.querySelector('.eli-delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteStation(region, idx);
+      });
+      editorList.appendChild(li);
+    });
+  });
+}
+
+function loadStationIntoForm(region, idx) {
+  const st = STATIONS[region][idx];
+  editingRegion = region;
+  editingIndex  = idx;
+  fRegion.value  = region;
+  fCall.value    = st.call;
+  fName.value    = st.name;
+  fLoc.value     = st.loc;
+  fFreq.value    = st.freq;
+  fDesc.value    = st.desc;
+  fTags.value    = st.tags.join(',');
+  fStreams.value  = st.streams.join('\n');
+  formTitle.textContent = 'EDITING: ' + st.call;
+  editorStatus.textContent = '';
+  editorStatus.className   = 'editor-status';
+}
+
+function saveStation() {
+  const call = fCall.value.trim().toUpperCase();
+  const name = fName.value.trim();
+  const loc  = fLoc.value.trim().toUpperCase();
+  const freq = fFreq.value.trim();
+  const desc = fDesc.value.trim();
+  const tags = fTags.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  const streams = fStreams.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const region  = fRegion.value;
+
+  if (!call || !name || !streams.length) {
+    editorStatus.textContent = '⚠ CALL SIGN, NAME AND AT LEAST ONE STREAM URL REQUIRED';
+    editorStatus.className   = 'editor-status err';
+    return;
+  }
+
+  const station = { call, name, loc, freq, desc, tags, streams };
+
+  if (editingRegion !== null && editingIndex !== null) {
+    // Update existing
+    STATIONS[editingRegion][editingIndex] = station;
+    // If region changed, move it
+    if (editingRegion !== region) {
+      STATIONS[editingRegion].splice(editingIndex, 1);
+      STATIONS[region].push(station);
+    }
+  } else {
+    // New station
+    STATIONS[region].push(station);
+  }
+
+  saveUserStations();
+  rebuildMainList();
+  renderEditorList();
+  clearForm();
+  editingRegion = null;
+  editingIndex  = null;
+
+  editorStatus.textContent = '✓ STATION SAVED AND INDEXED';
+  editorStatus.className   = 'editor-status ok';
+  addLog('DB UPDATE: ' + call + ' ADDED/MODIFIED', 'ok');
+}
+
+function deleteStation(region, idx) {
+  const st = STATIONS[region][idx];
+  if (!confirm('Remove ' + st.call + ' from the database?')) return;
+  STATIONS[region].splice(idx, 1);
+  saveUserStations();
+  rebuildMainList();
+  renderEditorList();
+  clearForm();
+  addLog('DB UPDATE: ' + st.call + ' REMOVED', 'warn');
+}
+
+// Load any saved customizations on startup
+loadUserStations();
+rebuildMainList();
+</script>
+</body>
+</html>

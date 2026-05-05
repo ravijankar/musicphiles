@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body, html { width: 100%; height: 100%; overflow: hidden; background: #0e0e0e; }
+      iframe { width: 100%; height: 100vh; border: none; display: block; }
+      #err { display: none; color: #c8963e; font-family: monospace; padding: 24px; }
+    </style>
+  </head>
+  <body>
+    <div id="err">⚠ Could not load Vite dev server at localhost:5173 — make sure <code>npm run dev</code> is running.</div>
+    <iframe id="frame" src="http://localhost:5173"
+      onerror="document.getElementById('err').style.display='block';this.style.display='none'">
+    </iframe>
+  </body>
+</html>
