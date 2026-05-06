@@ -13,10 +13,11 @@ export default function App() {
   const [albums, setAlbums] = useState<Album[]>([])
   const [selectedAlbum, setSelectedAlbum] = useState<{ album: Album; tracks: Track[] } | null>(null)
   const [playing, setPlaying] = useState<Track | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
-    getAlbumList(100).then(setAlbums).catch(console.error)
+    getAlbumList(100).then(setAlbums).catch(e => setLoadError(String(e)))
   }, [])
 
   async function openAlbum(album: Album) {
@@ -35,6 +36,8 @@ export default function App() {
     <div className="app">
       <div className="browser">
         <div className="album-list">
+          {loadError && <div className="load-error">⚠ {loadError}</div>}
+          {!loadError && albums.length === 0 && <div className="load-error">Loading…</div>}
           {albums.map(a => (
             <div
               key={a.id}

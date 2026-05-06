@@ -125,3 +125,4 @@ p { margin: 0; }
 audio { flex: 1; height: 36px; accent-color: var(--accent); }
 
 .hint { color: var(--muted); padding: 24px 0; }
+.load-error { color: var(--accent); padding: 16px 12px; font-size: 12px; word-break: break-all; }
