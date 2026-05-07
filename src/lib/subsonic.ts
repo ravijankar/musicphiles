@@ -1,19 +1,25 @@
-const BASE = import.meta.env.VITE_NAVIDROME_URL
-const USER = import.meta.env.VITE_NAVIDROME_USER
-const PASS = import.meta.env.VITE_NAVIDROME_PASS
+import { loadConfig } from './config'
 
-function authParams() {
-  const hex = Array.from(PASS as string)
+function getConfig() {
+  const cfg = loadConfig()
+  if (!cfg) throw new Error('Navidrome not configured')
+  return cfg
+}
+
+function authParams(user: string, pass: string) {
+  const hex = Array.from(pass)
     .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
     .join('')
-  return `u=${USER}&p=enc:${hex}&v=1.16.1&c=phil9&f=json`
+  return `u=${encodeURIComponent(user)}&p=enc:${hex}&v=1.16.1&c=musicphiles&f=json`
 }
 
 async function api(endpoint: string, extra?: Record<string, string | number>) {
+  const { navidromeUrl, navidromeUser, navidromePass } = getConfig()
   const extraStr = extra
     ? '&' + Object.entries(extra).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
     : ''
-  const res = await fetch(`${BASE}/rest/${endpoint}?${authParams()}${extraStr}`)
+  const url = `${navidromeUrl}/rest/${endpoint}?${authParams(navidromeUser, navidromePass)}${extraStr}`
+  const res = await fetch(url)
   const data = await res.json()
   const root = data['subsonic-response']
   if (root.status !== 'ok') throw new Error(root.error?.message ?? 'Subsonic API error')
@@ -52,9 +58,15 @@ export async function getAlbum(id: string): Promise<{ album: Album; tracks: Trac
 }
 
 export function streamUrl(id: string) {
-  return `${BASE}/rest/stream?id=${id}&${authParams()}`
+  const { navidromeUrl, navidromeUser, navidromePass } = getConfig()
+  return `${navidromeUrl}/rest/stream?id=${id}&${authParams(navidromeUser, navidromePass)}`
 }
 
 export function coverArtUrl(id: string, size = 200) {
-  return `${BASE}/rest/getCoverArt?id=${id}&size=${size}&${authParams()}`
+  const { navidromeUrl, navidromeUser, navidromePass } = getConfig()
+  return `${navidromeUrl}/rest/getCoverArt?id=${id}&size=${size}&${authParams(navidromeUser, navidromePass)}`
+}
+
+export async function testConnection(): Promise<void> {
+  await api('ping')
 }
