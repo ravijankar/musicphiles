@@ -627,6 +627,121 @@ input[type='range']:disabled { cursor: default; opacity: 0.3; }
 .widget-player-controls .scrubber-wrap { flex: 1; min-width: 0; }
 .widget-player-controls .volume-wrap { flex-shrink: 0; }
 
+/* ── vu meter ── */
+
+.vu-meter {
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  background: #0a0a0a;
+  box-sizing: border-box;
+}
+
+/* ── knob ── */
+
+.knob-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  user-select: none;
+}
+
+.knob-body {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3a3a3a, #111);
+  border: 2px solid #333;
+  position: relative;
+  cursor: ns-resize;
+  transform: rotate(var(--knob-angle, -135deg));
+  transition: border-color 0.1s;
+  touch-action: none;
+  flex-shrink: 0;
+}
+
+.knob-body.assigned { border-color: var(--border); }
+.knob-body.assigned:hover { border-color: var(--accent); }
+
+.knob-indicator {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.knob-label {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  transition: color 0.1s;
+}
+.knob-label:hover { color: var(--accent); }
+
+.knob-value {
+  font-size: 12px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.knob-picker {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+}
+
+.knob-picker-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.knob-picker-option {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.1s;
+}
+.knob-picker-option:hover { border-color: var(--accent); color: var(--accent); }
+
+.knob-picker-cancel {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px;
+  margin-top: 2px;
+}
+
 /* ── widget builder canvas ── */
 
 .canvas-shell {

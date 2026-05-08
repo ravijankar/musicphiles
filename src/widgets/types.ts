@@ -12,6 +12,7 @@ export interface WidgetDef {
 }
 
 export interface WidgetProps {
+  instanceId: string
   colSpan: number
   rowSpan: number
 }

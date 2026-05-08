@@ -59,7 +59,7 @@ function PlacedWidget({ item, onRemove }: PlacedWidgetProps) {
         ×
       </button>
       {def
-        ? <def.component colSpan={item.colSpan} rowSpan={item.rowSpan} />
+        ? <def.component instanceId={item.id} colSpan={item.colSpan} rowSpan={item.rowSpan} />
         : <div className="canvas-widget-label">{item.widgetType}</div>
       }
     </div>
@@ -129,13 +129,17 @@ function DragGhost({ widgetType }: { widgetType: string }) {
 
 export default function Canvas() {
   const { theme } = useTheme()
-  const [layout, setLayout] = useState<LayoutItem[]>(() => loadLayout(theme.id))
+  const [layout, setLayout] = useState<LayoutItem[]>(() => {
+    const saved = loadLayout(theme.id)
+    return saved.length > 0 ? saved : (theme.defaultLayout ?? [])
+  })
   const [activeType, setActiveType] = useState<string | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setLayout(loadLayout(theme.id))
-  }, [theme.id])
+    const saved = loadLayout(theme.id)
+    setLayout(saved.length > 0 ? saved : (theme.defaultLayout ?? []))
+  }, [theme.id, theme.defaultLayout])
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
 

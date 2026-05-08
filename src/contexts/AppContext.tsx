@@ -31,12 +31,17 @@ export interface AppContextValue {
   seek: (time: number) => void
   setVolume: (v: number) => void
   reloadLibrary: () => void
+
+  // audio analysis
+  getAnalyser: () => AnalyserNode | null
 }
 
 const AppContext = createContext<AppContextValue>(null!)
 
 export function AppProvider({ children, configured }: { children: React.ReactNode; configured: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(new Audio())
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
 
   const [albums, setAlbums] = useState<Album[]>([])
   const [selectedAlbum, setSelectedAlbum] = useState<{ album: Album; tracks: Track[] } | null>(null)
@@ -47,6 +52,24 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolumeState] = useState(1)
+
+  // Lazy-init Web Audio on first play (requires user gesture)
+  function ensureAudioGraph() {
+    if (analyserRef.current) return
+    try {
+      const ctx = new AudioContext()
+      const source = ctx.createMediaElementSource(audioRef.current)
+      const analyser = ctx.createAnalyser()
+      analyser.fftSize = 256
+      analyser.smoothingTimeConstant = 0.8
+      source.connect(analyser)
+      analyser.connect(ctx.destination)
+      audioCtxRef.current = ctx
+      analyserRef.current = analyser
+    } catch {}
+  }
+
+  const getAnalyser = useCallback((): AnalyserNode | null => analyserRef.current, [])
 
   const reloadLibrary = useCallback(() => {
     setAlbums([])
@@ -88,6 +111,7 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
     audio.src = nowPlaying.type === 'track'
       ? streamUrl(nowPlaying.track.id)
       : nowPlaying.station.url
+    ensureAudioGraph()
     audio.play().catch(() => {})
   }, [nowPlaying])
 
@@ -107,7 +131,12 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
-    isPlaying ? audio.pause() : audio.play().catch(() => {})
+    if (isPlaying) {
+      audio.pause()
+    } else {
+      ensureAudioGraph()
+      audio.play().catch(() => {})
+    }
   }, [isPlaying])
 
   const seek = useCallback((time: number) => {
@@ -128,6 +157,7 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
       nowPlaying, setNowPlaying,
       isPlaying, currentTime, duration, volume,
       togglePlay, seek, setVolume, reloadLibrary,
+      getAnalyser,
     }}>
       {children}
     </AppContext.Provider>

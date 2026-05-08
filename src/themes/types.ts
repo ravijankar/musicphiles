@@ -29,4 +29,5 @@ export interface Theme {
   tokens: ThemeTokens
   copy: ThemeCopy
   widgets?: import('../widgets/types').WidgetDef[]
+  defaultLayout?: import('../widgets/types').LayoutItem[]
 }
