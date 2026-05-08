@@ -145,7 +145,7 @@ export default function Canvas() {
       const pad = 48
       const scaleX = (el!.clientWidth  - pad) / CANVAS_W
       const scaleY = (el!.clientHeight - pad) / CANVAS_H
-      setScale(Math.min(1, scaleX, scaleY))
+      setScale(Math.min(scaleX, scaleY))
     }
     update()
     const ro = new ResizeObserver(update)

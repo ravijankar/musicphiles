@@ -25,16 +25,20 @@ export interface ThemeCopy {
   noStations: string
 }
 
-export interface Palette {
+export interface Variant {
   id: string
   name: string
   tokens: ThemeTokens
 }
 
+// Kept so any residual import of Palette still compiles
+export type Palette = Variant
+
 export interface Skin {
   id: string
   name: string
   copy: ThemeCopy
+  variants: Variant[]
   widgets?: WidgetDef[]
   defaultLayout?: LayoutItem[]
 }
@@ -47,6 +51,6 @@ export interface Theme {
   copy: ThemeCopy
   widgets?: WidgetDef[]
   defaultLayout?: LayoutItem[]
-  paletteId: string
+  variantId: string
   skinId: string
 }

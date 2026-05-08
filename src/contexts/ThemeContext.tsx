@@ -1,27 +1,27 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import type { Theme, Palette, Skin } from '../themes/types'
-import { palettes, skins, resolveTheme, loadPaletteId, savePaletteId, loadSkinId, saveSkinId } from '../themes/registry'
+import type { Theme, Variant, Skin } from '../themes/types'
+import { skins, resolveTheme, loadSkinId, saveSkinId, loadVariantId, saveVariantId } from '../themes/registry'
 import { registerThemeWidgets } from '../widgets/registry'
 
 interface ThemeContextValue {
   theme: Theme
-  palette: Palette
-  palettes: Palette[]
+  variant: Variant
+  variants: Variant[]
   skin: Skin
   skins: Skin[]
-  setPalette: (id: string) => void
+  setVariant: (id: string) => void
   setSkin: (id: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue>(null!)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [paletteId, setPaletteId] = useState(loadPaletteId)
-  const [skinId, setSkinId] = useState(loadSkinId)
+  const [skinId,    setSkinId]    = useState(loadSkinId)
+  const [variantId, setVariantId] = useState(() => loadVariantId(loadSkinId()))
 
-  const theme   = resolveTheme(paletteId, skinId)
-  const palette = palettes.find(p => p.id === paletteId) ?? palettes[0]
-  const skin    = skins.find(s => s.id === skinId) ?? skins[0]
+  const skin    = skins.find(s => s.id === skinId)    ?? skins[0]
+  const variant = skin.variants.find(v => v.id === variantId) ?? skin.variants[0]
+  const theme   = resolveTheme(skinId, variant.id)
 
   useEffect(() => {
     registerThemeWidgets(skin.widgets ?? [])
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement
     root.setAttribute('data-theme',   skinId)
-    root.setAttribute('data-palette', paletteId)
+    root.setAttribute('data-variant', variant.id)
     const { tokens } = theme
     root.style.setProperty('--bg',          tokens.bg)
     root.style.setProperty('--surface',     tokens.surface)
@@ -41,13 +41,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty('--accent',      tokens.accent)
     root.style.setProperty('--font-family', tokens.fontFamily)
     root.style.setProperty('--font-size',   tokens.fontSize)
-  }, [theme, skinId, paletteId])
+  }, [theme, skinId, variant.id])
 
-  function setPalette(id: string) { setPaletteId(id); savePaletteId(id) }
-  function setSkin(id: string)    { setSkinId(id);    saveSkinId(id) }
+  function setSkin(id: string) {
+    setSkinId(id)
+    saveSkinId(id)
+    const savedVariant = loadVariantId(id)
+    setVariantId(savedVariant)
+  }
+
+  function setVariant(id: string) {
+    setVariantId(id)
+    saveVariantId(skinId, id)
+  }
 
   return (
-    <ThemeContext.Provider value={{ theme, palette, palettes, skin, skins, setPalette, setSkin }}>
+    <ThemeContext.Provider value={{ theme, variant, variants: skin.variants, skin, skins, setVariant, setSkin }}>
       {children}
     </ThemeContext.Provider>
   )

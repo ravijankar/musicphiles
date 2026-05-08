@@ -1,19 +1,11 @@
 import type { Theme } from './types'
-import { palettes, getPalette } from './palettes'
-import { skins, getSkin } from './skins'
+import { skins } from './skins'
 
-export { palettes, getPalette } from './palettes'
-export { skins, getSkin } from './skins'
+export { skins } from './skins'
 
-const PALETTE_KEY = 'mph-palette'
-const SKIN_KEY    = 'mph-skin'
+const SKIN_KEY = 'mph-skin'
 
-export function loadPaletteId(): string {
-  return localStorage.getItem(PALETTE_KEY) ?? palettes[0].id
-}
-export function savePaletteId(id: string): void {
-  localStorage.setItem(PALETTE_KEY, id)
-}
+function variantKey(skinId: string) { return `mph-variant-${skinId}` }
 
 export function loadSkinId(): string {
   return localStorage.getItem(SKIN_KEY) ?? skins[0].id
@@ -22,27 +14,33 @@ export function saveSkinId(id: string): void {
   localStorage.setItem(SKIN_KEY, id)
 }
 
-export function resolveTheme(paletteId: string, skinId: string): Theme {
-  const palette = getPalette(paletteId)
-  const skin    = getSkin(skinId)
+export function loadVariantId(skinId: string): string {
+  const skin = skins.find(s => s.id === skinId) ?? skins[0]
+  return localStorage.getItem(variantKey(skinId)) ?? skin.variants[0].id
+}
+export function saveVariantId(skinId: string, variantId: string): void {
+  localStorage.setItem(variantKey(skinId), variantId)
+}
+
+export function resolveTheme(skinId: string, variantId: string): Theme {
+  const skin    = skins.find(s => s.id === skinId) ?? skins[0]
+  const variant = skin.variants.find(v => v.id === variantId) ?? skin.variants[0]
   return {
     id:            skin.id,
     name:          skin.name,
-    tokens:        palette.tokens,
+    tokens:        variant.tokens,
     copy:          skin.copy,
     widgets:       skin.widgets,
     defaultLayout: skin.defaultLayout,
-    paletteId:     palette.id,
+    variantId:     variant.id,
     skinId:        skin.id,
   }
 }
 
-// Legacy — kept so any old import of getThemes()/getTheme() still compiles
+// Legacy
 export function getThemes(): Theme[] {
-  return skins.flatMap(skin =>
-    palettes.map(palette => resolveTheme(palette.id, skin.id))
-  )
+  return skins.flatMap(skin => skin.variants.map(v => resolveTheme(skin.id, v.id)))
 }
 export function getTheme(id: string): Theme {
-  return resolveTheme(loadPaletteId(), id)
+  return resolveTheme(id, loadVariantId(id))
 }
