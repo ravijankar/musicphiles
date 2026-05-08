@@ -2,71 +2,75 @@
 
 **Your music. Your way.**
 
-A distraction-free listening console for self-hosted audio. Point it at your Navidrome server and build a custom interface from live widgets — no ads, no algorithm, no noise.
+A distraction-free listening console for Navidrome. Drag live widgets onto a canvas and build the interface you actually want — no ads, no algorithm, no noise.
+
+![musicphiles PHIL 9000 theme](docs/screenshot.png)
+<!-- Replace with an actual screenshot before submitting to the apps directory -->
 
 ---
 
-## What it is
+## Status
 
-musicphiles is a customizable web frontend that connects directly to your existing Navidrome instance. You drag live widgets onto a canvas and arrange them however you want. The result is a personal listening console that looks and feels like yours.
+Early release. Core playback works end-to-end. The widget builder is live.
 
-The flagship theme, **PHIL 9000**, ships with a pre-built layout and a retro AI console aesthetic. It loads ready to use.
+---
+
+## What it does
+
+musicphiles is a web frontend that connects directly to your Navidrome server. You get a drag-and-drop canvas where you place live widgets — album browser, track list, player controls, VU meter — and arrange them however you want.
+
+The flagship theme, **PHIL 9000**, ships with a pre-built retro console layout. It loads ready to use.
+
+No backend. No account. No tracking. Your credentials stay in your browser.
 
 ---
 
 ## Requirements
 
-- [Navidrome](https://www.navidrome.org/) — self-hosted music server (Subsonic API)
-- A modern browser
-
-No backend. No account. No tracking.
+- [Navidrome](https://www.navidrome.org/) 0.49+ (Subsonic API)
+- A modern browser (Chrome, Firefox, Safari)
+- Node.js 18+ to run locally
 
 ---
 
 ## Setup
 
 ```bash
+git clone https://github.com/your-username/musicphiles
+cd musicphiles
 npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). On first launch you'll be prompted for your Navidrome URL and credentials. These are saved to `localStorage` — nothing leaves your browser.
+Open [http://localhost:5173](http://localhost:5173). On first launch you'll see a setup screen — enter your Navidrome URL, username, and password. Hit **Test connection**, then **Save**. Your library loads immediately.
+
+Credentials are written to `localStorage` only. Nothing is transmitted anywhere except directly to your Navidrome server.
 
 ---
 
-## Features
+## Themes
 
-- **Widget builder** — drag-and-drop canvas (96 cols / 8px rows, iPad Pro 11" dimensions)
-- **Live widgets** — album browser, track list, player controls, VU meter, assignable knobs
-- **Theme system** — PHIL 9000 (retro AI console) and Terminal Green included
-- **Default layout** — PHIL 9000 loads with a pre-built console so the canvas isn't blank
-- **Radio** — tune to hardcoded station presets (AzuraCast integration coming later)
-- **No backend** — frontend-only, connects directly to Navidrome via Subsonic API
+| Theme | Description |
+|---|---|
+| **PHIL 9000** | Retro AI console. Pre-built layout, amber on black. |
+| **Terminal** | Green-on-black terminal aesthetic. |
+| **Boombox** | Casual and warm. Dual VU meters. |
+
+Switch themes from the top bar. Each theme has its own saved layout.
 
 ---
 
-## Project structure
+## Widget builder
 
-```
-src/
-  App.tsx                   root — tab routing + settings gate
-  lib/
-    subsonic.ts             Subsonic API client
-    config.ts               Navidrome credentials (localStorage)
-    layout.ts               widget layout persistence (per theme)
-    knobs.ts                assignable knob settings
-  contexts/
-    AppContext.tsx           single audio element, all playback/library state
-    ThemeContext.tsx         theme tokens, CSS injection, widget registration
-  themes/
-    phil9000.ts             PHIL 9000 theme + default layout
-    terminal-green.ts       Terminal Green theme
-  widgets/
-    base/                   8 live widget components
-  components/
-    Canvas.tsx              DnD widget builder
-    Settings.tsx            Navidrome config UI
-```
+The canvas is 96 columns wide, with an 8px row height — sized for iPad Pro 11" landscape. Drag widgets from the palette on the left onto the canvas. Drag placed widgets to reposition. Hit **Reset** to restore the theme's default layout.
+
+Available widgets: Album Browser, Track List, Player, VU Meter, Knob, Dial, Button, Radio.
+
+---
+
+## Contributing
+
+This is a personal project at an early stage. Bug reports and ideas welcome via GitHub Issues.
 
 ---
 
