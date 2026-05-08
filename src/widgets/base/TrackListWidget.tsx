@@ -19,9 +19,9 @@ export const trackListWidget: WidgetDef = {
   type: 'track-list',
   name: 'Track List',
   description: 'Tracks for the selected album',
-  minColSpan: 14,
+  minColSpan: 12,
   minRowSpan: 20,
-  defaultColSpan: 28,
-  defaultRowSpan: 72,
+  defaultColSpan: 24,
+  defaultRowSpan: 55,
   component: TrackListWidget,
 }

@@ -68,7 +68,7 @@ export default function Player() {
       </div>
 
       <div className="volume-wrap">
-        <span className="vol-icon">{volume === 0 ? '🔇' : '🔊'}</span>
+        <span className="vol-label">VOL</span>
         <input
           type="range"
           className="volume-slider"
@@ -78,6 +78,7 @@ export default function Player() {
           value={volume}
           onChange={e => setVolume(Number(e.target.value))}
         />
+        <span className="vol-pct">{Math.round(volume * 100)}</span>
       </div>
     </div>
   )

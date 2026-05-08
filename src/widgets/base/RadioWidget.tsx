@@ -36,9 +36,9 @@ export const radioWidget: WidgetDef = {
   type: 'radio',
   name: 'Radio',
   description: 'Live radio station list and tuner',
-  minColSpan: 12,
+  minColSpan: 10,
   minRowSpan: 16,
-  defaultColSpan: 28,
-  defaultRowSpan: 32,
+  defaultColSpan: 18,
+  defaultRowSpan: 40,
   component: RadioWidget,
 }

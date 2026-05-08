@@ -20,9 +20,17 @@ async function api(endpoint: string, extra?: Record<string, string | number>) {
     : ''
   const url = `${navidromeUrl}/rest/${endpoint}?${authParams(navidromeUser, navidromePass)}${extraStr}`
   const res = await fetch(url)
-  const data = await res.json()
-  const root = data['subsonic-response']
-  if (root.status !== 'ok') throw new Error(root.error?.message ?? 'Subsonic API error')
+  if (!res.ok) throw new Error(`HTTP ${res.status} from Navidrome`)
+  const text = await res.text()
+  let data: unknown
+  try {
+    data = JSON.parse(text)
+  } catch {
+    throw new Error(`Navidrome returned non-JSON (check URL in settings)`)
+  }
+  const root = (data as Record<string, unknown>)['subsonic-response'] as Record<string, unknown>
+  if (!root) throw new Error('Unexpected Navidrome response format')
+  if (root.status !== 'ok') throw new Error((root.error as Record<string, string> | undefined)?.message ?? 'Subsonic API error')
   return root
 }
 

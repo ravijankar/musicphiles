@@ -1,25 +1,36 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import type { Theme } from '../themes/types'
-import { getTheme, getThemes, loadThemeId, saveThemeId } from '../themes/registry'
+import type { Theme, Palette, Skin } from '../themes/types'
+import { palettes, skins, resolveTheme, loadPaletteId, savePaletteId, loadSkinId, saveSkinId } from '../themes/registry'
 import { registerThemeWidgets } from '../widgets/registry'
 
 interface ThemeContextValue {
   theme: Theme
-  themes: Theme[]
-  setTheme: (id: string) => void
+  palette: Palette
+  palettes: Palette[]
+  skin: Skin
+  skins: Skin[]
+  setPalette: (id: string) => void
+  setSkin: (id: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue>(null!)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => getTheme(loadThemeId()))
+  const [paletteId, setPaletteId] = useState(loadPaletteId)
+  const [skinId, setSkinId] = useState(loadSkinId)
+
+  const theme   = resolveTheme(paletteId, skinId)
+  const palette = palettes.find(p => p.id === paletteId) ?? palettes[0]
+  const skin    = skins.find(s => s.id === skinId) ?? skins[0]
 
   useEffect(() => {
-    registerThemeWidgets(theme.widgets ?? [])
-  }, [theme])
+    registerThemeWidgets(skin.widgets ?? [])
+  }, [skin])
 
   useEffect(() => {
     const root = document.documentElement
+    root.setAttribute('data-theme',   skinId)
+    root.setAttribute('data-palette', paletteId)
     const { tokens } = theme
     root.style.setProperty('--bg',          tokens.bg)
     root.style.setProperty('--surface',     tokens.surface)
@@ -30,16 +41,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty('--accent',      tokens.accent)
     root.style.setProperty('--font-family', tokens.fontFamily)
     root.style.setProperty('--font-size',   tokens.fontSize)
-  }, [theme])
+  }, [theme, skinId, paletteId])
 
-  function setTheme(id: string) {
-    const next = getTheme(id)
-    setThemeState(next)
-    saveThemeId(id)
-  }
+  function setPalette(id: string) { setPaletteId(id); savePaletteId(id) }
+  function setSkin(id: string)    { setSkinId(id);    saveSkinId(id) }
 
   return (
-    <ThemeContext.Provider value={{ theme, themes: getThemes(), setTheme }}>
+    <ThemeContext.Provider value={{ theme, palette, palettes, skin, skins, setPalette, setSkin }}>
       {children}
     </ThemeContext.Provider>
   )

@@ -1,27 +1,48 @@
 import type { Theme } from './types'
-import { phil9000 } from './phil9000'
-import { terminalGreen } from './terminal-green'
+import { palettes, getPalette } from './palettes'
+import { skins, getSkin } from './skins'
 
-// To add a theme: create a file in src/themes/, import it here, add to this array.
-const registry: Theme[] = [
-  phil9000,
-  terminalGreen,
-]
+export { palettes, getPalette } from './palettes'
+export { skins, getSkin } from './skins'
 
-const STORAGE_KEY = 'mph-theme'
+const PALETTE_KEY = 'mph-palette'
+const SKIN_KEY    = 'mph-skin'
 
+export function loadPaletteId(): string {
+  return localStorage.getItem(PALETTE_KEY) ?? palettes[0].id
+}
+export function savePaletteId(id: string): void {
+  localStorage.setItem(PALETTE_KEY, id)
+}
+
+export function loadSkinId(): string {
+  return localStorage.getItem(SKIN_KEY) ?? skins[0].id
+}
+export function saveSkinId(id: string): void {
+  localStorage.setItem(SKIN_KEY, id)
+}
+
+export function resolveTheme(paletteId: string, skinId: string): Theme {
+  const palette = getPalette(paletteId)
+  const skin    = getSkin(skinId)
+  return {
+    id:            skin.id,
+    name:          skin.name,
+    tokens:        palette.tokens,
+    copy:          skin.copy,
+    widgets:       skin.widgets,
+    defaultLayout: skin.defaultLayout,
+    paletteId:     palette.id,
+    skinId:        skin.id,
+  }
+}
+
+// Legacy — kept so any old import of getThemes()/getTheme() still compiles
 export function getThemes(): Theme[] {
-  return registry
+  return skins.flatMap(skin =>
+    palettes.map(palette => resolveTheme(palette.id, skin.id))
+  )
 }
-
 export function getTheme(id: string): Theme {
-  return registry.find(t => t.id === id) ?? registry[0]
-}
-
-export function loadThemeId(): string {
-  return localStorage.getItem(STORAGE_KEY) ?? registry[0].id
-}
-
-export function saveThemeId(id: string): void {
-  localStorage.setItem(STORAGE_KEY, id)
+  return resolveTheme(loadPaletteId(), id)
 }

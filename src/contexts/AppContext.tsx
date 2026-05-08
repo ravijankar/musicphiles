@@ -39,7 +39,7 @@ export interface AppContextValue {
 const AppContext = createContext<AppContextValue>(null!)
 
 export function AppProvider({ children, configured }: { children: React.ReactNode; configured: boolean }) {
-  const audioRef = useRef<HTMLAudioElement>(new Audio())
+  const audioRef = useRef<HTMLAudioElement>((() => { const a = new Audio(); a.volume = 0.5; return a })())
   const audioCtxRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
 
@@ -51,7 +51,7 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [volume, setVolumeState] = useState(1)
+  const [volume, setVolumeState] = useState(0.5)
 
   // Lazy-init Web Audio on first play (requires user gesture)
   function ensureAudioGraph() {
@@ -112,7 +112,12 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
       ? streamUrl(nowPlaying.track.id)
       : nowPlaying.station.url
     ensureAudioGraph()
-    audio.play().catch(() => {})
+    const ctx = audioCtxRef.current
+    if (ctx) {
+      ctx.resume().then(() => audio.play().catch(() => {}))
+    } else {
+      audio.play().catch(() => {})
+    }
   }, [nowPlaying])
 
   const openAlbum = useCallback(async (album: Album) => {
@@ -135,6 +140,7 @@ export function AppProvider({ children, configured }: { children: React.ReactNod
       audio.pause()
     } else {
       ensureAudioGraph()
+      audioCtxRef.current?.resume()
       audio.play().catch(() => {})
     }
   }, [isPlaying])

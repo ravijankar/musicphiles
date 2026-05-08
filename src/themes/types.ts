@@ -1,3 +1,5 @@
+import type { WidgetDef, LayoutItem } from '../widgets/types'
+
 export interface ThemeTokens {
   bg: string
   surface: string
@@ -23,11 +25,28 @@ export interface ThemeCopy {
   noStations: string
 }
 
-export interface Theme {
+export interface Palette {
   id: string
   name: string
   tokens: ThemeTokens
+}
+
+export interface Skin {
+  id: string
+  name: string
   copy: ThemeCopy
-  widgets?: import('../widgets/types').WidgetDef[]
-  defaultLayout?: import('../widgets/types').LayoutItem[]
+  widgets?: WidgetDef[]
+  defaultLayout?: LayoutItem[]
+}
+
+// Resolved combination — what the rest of the app consumes via useTheme()
+export interface Theme {
+  id: string        // skin.id
+  name: string      // skin.name
+  tokens: ThemeTokens
+  copy: ThemeCopy
+  widgets?: WidgetDef[]
+  defaultLayout?: LayoutItem[]
+  paletteId: string
+  skinId: string
 }

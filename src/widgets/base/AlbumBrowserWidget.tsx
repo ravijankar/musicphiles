@@ -20,9 +20,9 @@ export const albumBrowserWidget: WidgetDef = {
   type: 'album-browser',
   name: 'Album Browser',
   description: 'Browse and select albums from your library',
-  minColSpan: 12,
+  minColSpan: 10,
   minRowSpan: 20,
-  defaultColSpan: 20,
-  defaultRowSpan: 104,
+  defaultColSpan: 18,
+  defaultRowSpan: 55,
   component: AlbumBrowserWidget,
 }

@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useCallback, useEffect } from 'react'
+import { memo, useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -134,7 +134,24 @@ export default function Canvas() {
     return saved.length > 0 ? saved : (theme.defaultLayout ?? [])
   })
   const [activeType, setActiveType] = useState<string | null>(null)
+  const [scale, setScale] = useState(1)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    function update() {
+      const pad = 48
+      const scaleX = (el!.clientWidth  - pad) / CANVAS_W
+      const scaleY = (el!.clientHeight - pad) / CANVAS_H
+      setScale(Math.min(1, scaleX, scaleY))
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     const saved = loadLayout(theme.id)
@@ -172,8 +189,8 @@ export default function Canvas() {
     if (data.source === 'palette') {
       const def = getWidgetDef(data.widgetType!)
       if (!def) return
-      const pointerX = (e.activatorEvent as PointerEvent).clientX - surfaceRect.left + delta.x
-      const pointerY = (e.activatorEvent as PointerEvent).clientY - surfaceRect.top + delta.y
+      const pointerX = ((e.activatorEvent as PointerEvent).clientX - surfaceRect.left + delta.x) / scale
+      const pointerY = ((e.activatorEvent as PointerEvent).clientY - surfaceRect.top  + delta.y) / scale
       const { col, row } = snapToGrid(
         Math.max(0, pointerX - (def.defaultColSpan * COL_W) / 2),
         Math.max(0, pointerY - (def.defaultRowSpan * ROW_H) / 2),
@@ -189,8 +206,8 @@ export default function Canvas() {
     } else if (data.source === 'canvas') {
       const item = data.item!
       const def = getWidgetDef(item.widgetType)
-      const newCol = Math.max(0, Math.min(COLS - (def?.minColSpan ?? 1), item.col + Math.round(delta.x / COL_W)))
-      const newRow = Math.max(0, item.row + Math.round(delta.y / ROW_H))
+      const newCol = Math.max(0, Math.min(COLS - (def?.minColSpan ?? 1), item.col + Math.round(delta.x / scale / COL_W)))
+      const newRow = Math.max(0, item.row + Math.round(delta.y / scale / ROW_H))
       persist(layout.map(l => l.id === item.id ? { ...l, col: newCol, row: newRow } : l))
     }
   }
@@ -206,17 +223,27 @@ export default function Canvas() {
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <WidgetPalette widgets={widgets} />
 
-        <div className="canvas-main" ref={canvasRef}>
+        <div className="canvas-main">
           <div className="canvas-toolbar">
             <span className="canvas-toolbar-info">
-              {COLS} cols · {ROW_H}px rows · {COL_W.toFixed(2)}px/col
+              Drag widgets from the left panel onto the canvas. Drag placed widgets to reposition. Click × to remove.
             </span>
+            <button className="canvas-toolbar-btn" onClick={() => { clearLayout(theme.id); persist(theme.defaultLayout ?? []) }}>
+              Reset
+            </button>
             <button className="canvas-toolbar-btn" onClick={() => { clearLayout(theme.id); persist([]) }}>
               Clear
             </button>
           </div>
-          <div className="canvas-scroll">
-            <CanvasSurface items={layout} onRemove={removeItem} />
+          <div className="canvas-scroll" ref={scrollRef}>
+            <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: CANVAS_W, height: CANVAS_H }}>
+              <CanvasSurface items={layout} onRemove={removeItem} />
+            </div>
+            {layout.length === 0 && (
+              <div className="canvas-empty">
+                ← Drag a widget from the panel to get started
+              </div>
+            )}
           </div>
         </div>
 

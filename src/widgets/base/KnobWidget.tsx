@@ -77,9 +77,9 @@ export const knobWidget: WidgetDef = {
   type: 'knob',
   name: 'Knob',
   description: 'Rotary control — assignable to any setting',
-  minColSpan: 6,
-  minRowSpan: 10,
-  defaultColSpan: 9,
-  defaultRowSpan: 14,
+  minColSpan: 5,
+  minRowSpan: 8,
+  defaultColSpan: 7,
+  defaultRowSpan: 10,
   component: KnobWidget,
 }

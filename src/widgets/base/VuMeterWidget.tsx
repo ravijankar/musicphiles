@@ -97,7 +97,7 @@ export const vuMeterWidget: WidgetDef = {
   description: 'Audio level visualization',
   minColSpan: 4,
   minRowSpan: 8,
-  defaultColSpan: 8,
-  defaultRowSpan: 40,
+  defaultColSpan: 6,
+  defaultRowSpan: 44,
   component: VuMeterWidget,
 }

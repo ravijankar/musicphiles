@@ -56,12 +56,13 @@ function PlayerWidget() {
         )}
 
         <div className="volume-wrap">
-          <span className="vol-icon">{volume === 0 ? '🔇' : '🔊'}</span>
+          <span className="vol-label">VOL</span>
           <input
             type="range" className="volume-slider"
             min={0} max={1} step={0.02} value={volume}
             onChange={e => setVolume(Number(e.target.value))}
           />
+          <span className="vol-pct">{Math.round(volume * 100)}</span>
         </div>
       </div>
     </div>
@@ -74,7 +75,7 @@ export const playerWidget: WidgetDef = {
   description: 'Playback controls, scrubber, and volume',
   minColSpan: 20,
   minRowSpan: 8,
-  defaultColSpan: 28,
-  defaultRowSpan: 32,
+  defaultColSpan: 40,
+  defaultRowSpan: 16,
   component: PlayerWidget,
 }
